@@ -26,10 +26,11 @@ void User::UserMoveY(bool dir)
 		p_.y += 10 * speed_;
 }
 // Bomb
-Bomb::Bomb(int x,int y)
+Bomb::Bomb(int x,int y, std::chrono::time_point<std::chrono::high_resolution_clock>& now)
 {
 	p_.x = x;
 	p_.y = y;
+	start_ = now;
 }
 Bomb::Bomb(Point p,std::chrono::time_point<std::chrono::high_resolution_clock> &now)
 {

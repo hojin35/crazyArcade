@@ -21,7 +21,7 @@ private:
 class Bomb
 {
 public:
-	Bomb(int x,int y);
+	Bomb(int x,int y, std::chrono::time_point<std::chrono::high_resolution_clock>& now);
 	Bomb(Point p, std::chrono::time_point<std::chrono::high_resolution_clock> &now);
 	Point GetPosition();
 	int GetPassedTime(std::chrono::time_point<std::chrono::high_resolution_clock> &end);

@@ -22,10 +22,10 @@ int main()
 	sf::Sprite s_bomb(t_bomb);
 	sf::Sprite s_character(t_character);
 	sf::Sprite s_box(t_box);
-	int gameMap[15][13];
-	for (int i = 0; i < 15; i++)
+	int gameMap[13][15];
+	for (int i = 0; i < 13; i++)
 	{
-		for (int j = 0; j < 13; j++)
+		for (int j = 0; j < 15; j++)
 		{
 			if (rand() % 5 == 0)
 				gameMap[i][j] = 0;
@@ -51,8 +51,16 @@ int main()
 				if (e.key.code == sf::Keyboard::Space)
 				{
 					//TODO : gameMap 0인 곳을 찾아서 물풍선 설치
+					Point character_position = player1.GetPosition();
+					int map_x = character_position.x / 80;
+					int map_y = character_position.y / 80;
+					if (gameMap[map_y][map_x] == 1)
+					{
+						continue;
+					}
+					gameMap[map_y][map_x] = 2;
 					start = ch::high_resolution_clock::now();
-					Bomb bomb1(player1.GetPosition(),start);
+					Bomb bomb1(map_x, map_y,start);
 					bomb_array.push_back(bomb1);
 				}
 				CharacterMove(e, player1);
@@ -60,36 +68,39 @@ int main()
 		}
 
 		window.clear(sf::Color::White);
-		// 박스 그리기
-		for (int i = 0; i < 15; i++)
-		{
-			for (int j = 0; j < 13; j++)
-			{
-				if (gameMap[i][j] == 1)
-				{
-					s_box.setPosition(i * 80, j * 80);
-					window.draw(s_box);
-				}
-			}
-		}
 
 		ch::time_point<ch::high_resolution_clock> end = ch::high_resolution_clock::now();
-		// 폭탄 그리기
-		for (int i=0;i<bomb_array.size();i++)
+		for (int i = 0; i < bomb_array.size(); i++)
 		{
 			// 터질 떄가 되었다면... 터트리기
 			if (bomb_array[i].GetPassedTime(end) > 3000)
 			{
 				// TODO : 연쇄 폭팔 && 박스 터트리기
+				Point p = bomb_array[i].GetPosition();
+				gameMap[p.y][p.x] = 0;
 				bomb_array.erase(bomb_array.begin() + i);
-				i--;
-				continue;
+				i--;				// 안해주면 vector 범위 벗어남.
 			}
-
-			Point bomb_rocation = bomb_array[i].GetPosition();
-			s_bomb.setPosition(bomb_rocation.x, bomb_rocation.y);
-			window.draw(s_bomb);
 		}
+		// 박스 그리기 && 폭탄 그리기
+		for (int i = 0; i < 13; i++)
+		{
+			for (int j = 0; j < 15; j++)
+			{
+				if (gameMap[i][j] == 1)
+				{
+					s_box.setPosition(j * 80, i * 80);
+					window.draw(s_box);
+				}
+				if (gameMap[i][j] == 2)
+				{
+					s_bomb.setPosition(j * 80, i * 80);
+					window.draw(s_bomb);
+				}
+			}
+		}
+
+		
 		// 플레이어 그리기
 		Point player_position = player1.GetPosition();
 		s_character.setPosition(player_position.x, player_position.y);
@@ -109,8 +120,4 @@ void CharacterMove(sf::Event& e, User& player)
 		player.UserMoveX(false);
 	if (e.key.code == sf::Keyboard::Right)
 		player.UserMoveX(true);
-}
-void TimerInit()
-{
-	
 }
