@@ -1,6 +1,7 @@
 #include "unit.h"
-#include<chrono>
-//User
+
+
+//user
 User::User()
 {
 	p_.x = 10;
@@ -25,27 +26,30 @@ void User::UserMoveY(bool dir)
 	else
 		p_.y += 10 * speed_;
 }
+int User::GetExplosionRange()
+{
+	return explosion_range_;
+}
+
 // Bomb
-Bomb::Bomb(int x,int y, std::chrono::time_point<std::chrono::high_resolution_clock>& now)
+Bomb::Bomb(int x,int y, ch::time_point<ch::high_resolution_clock>& now,int explosion_range)
 {
 	p_.x = x;
 	p_.y = y;
 	start_ = now;
+	explosion_range_ = explosion_range;
 }
-Bomb::Bomb(Point p,std::chrono::time_point<std::chrono::high_resolution_clock> &now)
-{
-	p_.x = p.x;
-	p_.y = p.y;
-	start_ = now;
-}
-
 Point Bomb::GetPosition()
 {
 	return p_;
 }
-int Bomb::GetPassedTime(std::chrono::time_point<std::chrono::high_resolution_clock>& end)
+int Bomb::GetPassedTime(ch::time_point<ch::high_resolution_clock>& end)
 {
 	auto diff = end - start_;
 	
-	return std::chrono::duration_cast<std::chrono::milliseconds>(diff).count();
+	return ch::duration_cast<ch::milliseconds>(diff).count();
+}
+int Bomb::GetExplosionRange()
+{
+	return explosion_range_;
 }
