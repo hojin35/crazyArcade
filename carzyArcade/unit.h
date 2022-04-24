@@ -24,6 +24,7 @@ public:
 	void UserMoveX(bool dir);
 	void UserMoveY(bool dir);
 	int GetExplosionRange();
+	void SetPosition(Point& p);
 private:
 	Point p_;
 	double speed_ = 1;

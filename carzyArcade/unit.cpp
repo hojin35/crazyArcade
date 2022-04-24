@@ -30,7 +30,10 @@ int User::GetExplosionRange()
 {
 	return explosion_range_;
 }
-
+void User::SetPosition(Point& p)
+{
+	p_ = p;
+}
 // Bomb
 Bomb::Bomb(int x,int y, ch::time_point<ch::high_resolution_clock>& now,int explosion_range)
 {

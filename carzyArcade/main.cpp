@@ -6,7 +6,7 @@
 
 namespace ch = std::chrono;
 
-void CharacterMove(sf::Event& e, User& player,int game_map[][15]);
+void CharacterMove(sf::Event& e, User& player, int game_map[][15]);
 void BombExplosion(int game_map[][15], const int kMapSize[], sf::RenderWindow& window, sf::Sprite& s_wave, Bomb& bomb, std::vector<Bomb>& bomb_array);
 /* TODO LIST:
 *   아이템 추가
@@ -31,20 +31,22 @@ int main()
 	sf::Texture t_character;
 	sf::Texture t_box;
 	sf::Texture t_wave;
+	sf::Texture t_portion;
 	t_bomb.loadFromFile("./images/waterbomb.png");
 	t_character.loadFromFile("./images/player.png");
 	t_box.loadFromFile("./images/box.png");
 	t_wave.loadFromFile("./images/wave.png");
+	t_portion.loadFromFile("./images/portion.png");
 	sf::Sprite s_bomb(t_bomb);
 	sf::Sprite s_character(t_character);
 	// png 크기 조절 언젠가는 해야됨 하고나서 삭제
 	s_bomb.setScale(1.25f, 1.25f);
 	s_character.setScale(1.25f, 1.25f);
-
+	s_character.setOrigin(40, 40);
 	sf::Sprite s_box(t_box);
 	sf::Sprite s_wave(t_wave);
-
-	int game_map[13][15] = 
+	sf::Sprite s_portion(t_portion);
+	int game_map[13][15] =
 	{
 		{0,0,0,0,1,1,1,1,1,1,0,0,0,1,1},
 		{0,0,0,0,1,1,1,1,1,1,0,0,0,1,1},
@@ -126,6 +128,11 @@ int main()
 					s_bomb.setPosition(j * 80, i * 80);
 					window.draw(s_bomb);
 				}
+				if (game_map[i][j] == 3)
+				{
+					s_portion.setPosition(j * 80, i * 80);
+					window.draw(s_portion);
+				}
 			}
 		}
 
@@ -138,115 +145,200 @@ int main()
 	}
 
 }
-void CharacterMove(sf::Event& e, User& player,int game_map[][15])
+void CharacterMove(sf::Event& e, User& player, int game_map[][15])
 {
+	Point temp_p = player.GetPosition();
+	if (e.key.code == sf::Keyboard::Up)
+		player.UserMoveY(false);
+	if (e.key.code == sf::Keyboard::Down)
+		player.UserMoveY(true);
+	if (e.key.code == sf::Keyboard::Left)
+		player.UserMoveX(false);
+	if (e.key.code == sf::Keyboard::Right)
+		player.UserMoveX(true);
+
 	Point p = player.GetPosition();
 	int map_x = p.x / 80;
 	int map_y = p.y / 80;
-	if (e.key.code == sf::Keyboard::Up && game_map[map_y-1][map_x] == 0)
-		player.UserMoveY(false);
-	if (e.key.code == sf::Keyboard::Down && game_map[map_y + 1][map_x] == 0)
-		player.UserMoveY(true);
-	if (e.key.code == sf::Keyboard::Left && game_map[map_y][map_x-1] == 0)
-		player.UserMoveX(false);
-	if (e.key.code == sf::Keyboard::Right && game_map[map_y][map_x+1] == 0)
-		player.UserMoveX(true);
+	if (game_map[map_y][map_x] == 1 || game_map[map_y][map_x] == 2)
+	{
+		player.SetPosition(temp_p);
+	}
 }
 // 얘는 나중엔 절대로 뜯어고칩시다. 배열이라 0 bomb면 -1인... 15번째 배열이 bomb된다...
 void BombExplosion(int game_map[][15], const int kMapSize[], sf::RenderWindow& window, sf::Sprite& s_wave, Bomb& bomb, std::vector<Bomb>& bomb_array)
 {
+	//std::vector<wave> wave_array; // wave class 만들어서 문양 넣기
 	// 폭팔 이펙트 구현 몰?루 하겠다..
+
 	Point p = bomb.GetPosition();
 	game_map[p.y][p.x] = 0;
-
+	bool is_boom[4] = { false, };
 	int explosion_range = bomb.GetExplosionRange();
 	for (int i = 1; i <= explosion_range; i++)
 	{
-		if (game_map[p.y + i][p.x] == 0)
-			continue;
-		if (game_map[p.y + i][p.x] == 2)
+		if (is_boom[0] == false)
 		{
-			Point copy_p = p;
-			copy_p.y += i;
-			for (Bomb& b : bomb_array)
+			if (game_map[p.y + i][p.x] == 0)
 			{
-				if (copy_p.operator==(b.GetPosition()))
+				//new wave(x,y,time);
+				// wave_array.push_back(wave);
+			}
+			if (game_map[p.y + i][p.x] == 1)
+			{
+				if (rand() % 2)
+					game_map[p.y + i][p.x] = 3;
+				else
+					game_map[p.y + i][p.x] = 0;
+			}
+			if (game_map[p.y + i][p.x] == 2)
+			{
+				Point copy_p = p;
+				copy_p.y += i;
+				for (Bomb& b : bomb_array)
 				{
-					BombExplosion(game_map, kMapSize, window, s_wave, b, bomb_array);
-					break;
+					if (copy_p.operator==(b.GetPosition()))
+					{
+						BombExplosion(game_map, kMapSize, window, s_wave, b, bomb_array);
+						break;
+					}
 				}
 			}
-			break;
+			else
+			{
+				game_map[p.y + i][p.x] = 0;
+			}
+			is_boom[0] = true;
 		}
-		else
-			game_map[p.y + i][p.x] = 0;
-		break;
+		if (is_boom[1] == false)
+		{
+			if (game_map[p.y - i][p.x] == 0)
+			{
+				//new wave(x,y,time);
+				// wave_array.push_back(wave);
+			}
+			if (game_map[p.y - i][p.x] == 1)
+			{
+				if (rand() % 2)
+					game_map[p.y - i][p.x] = 3;
+				else
+					game_map[p.y - i][p.x] = 0;
+			}
+			if (game_map[p.y - i][p.x] == 2)
+			{
+				Point copy_p = p;
+				copy_p.y -= i;
+				for (Bomb& b : bomb_array)
+				{
+					if (copy_p.operator==(b.GetPosition()))
+					{
+						BombExplosion(game_map, kMapSize, window, s_wave, b, bomb_array);
+						break;
+					}
+				}
+			}
+			else
+			{
+				game_map[p.y + i][p.x] = 0;
+			}
+			is_boom[1] = true;
+		}
+		if (is_boom[2] == false)
+		{
+			if (game_map[p.y][p.x + i] == 0)
+			{
+				//new wave(x,y,time);
+				// wave_array.push_back(wave);
+			}
+			if (game_map[p.y][p.x + i] == 1)
+			{
+				if (rand() % 2)
+					game_map[p.y][p.x + i] = 3;
+				else
+					game_map[p.y][p.x + i] = 0;
+			}
+			if (game_map[p.y][p.x + i] == 2)
+			{
+				Point copy_p = p;
+				copy_p.x += i;
+				for (Bomb& b : bomb_array)
+				{
+					if (copy_p.operator==(b.GetPosition()))
+					{
+						BombExplosion(game_map, kMapSize, window, s_wave, b, bomb_array);
+						break;
+					}
+				}
+			}
+			else
+			{
+				game_map[p.y][p.x + i] = 0;
+			}
+			is_boom[2] = true;
+		}
+		if (is_boom[3] == false)
+		{
+			if (game_map[p.y][p.x - i] == 0)
+			{
+				//new wave(x,y,time);
+				// wave_array.push_back(wave);
+			}
+			if (game_map[p.y][p.x - i] == 1)
+			{
+				if (rand() % 2)
+					game_map[p.y][p.x - i] = 3;
+				else
+					game_map[p.y][p.x - i] = 0;
+			}
+			if (game_map[p.y][p.x - i] == 2)
+			{
+				Point copy_p = p;
+				copy_p.x -= i;
+				for (Bomb& b : bomb_array)
+				{
+					if (copy_p.operator==(b.GetPosition()))
+					{
+						BombExplosion(game_map, kMapSize, window, s_wave, b, bomb_array);
+						break;
+					}
+				}
+			}
+			else
+			{
+				game_map[p.y][p.x + i] = 0;
+			}
+			is_boom[3] = true;
+		}
 	}
-	
-	for (int i = 1; i <= explosion_range; i++)
+}
+
+void WhatExploded(int game_map[][15], const int kMapSize[], sf::RenderWindow& window, sf::Sprite& s_wave, Bomb& bomb, std::vector<Bomb>& bomb_array,Point p)
+{
+	if (game_map[p.y][p.x] == 0)
 	{
-		if (game_map[p.y - i][p.x] == 0)
-			continue;
-		if (game_map[p.y - i][p.x] == 2)
-		{
-			Point copy_p = p;
-			copy_p.y -= i;
-			for (Bomb& b : bomb_array)
-			{
-				if (copy_p.operator==(b.GetPosition()))
-				{
-					BombExplosion(game_map, kMapSize, window, s_wave, b, bomb_array);
-					break;
-				}
-			}
-			break;
-		}
-		else
-			game_map[p.y - i][p.x] = 0;
-		break;
+		//new wave(x,y,time);
+		// wave_array.push_back(wave);
 	}
-	for (int i = 1; i <= explosion_range; i++)
+	else if (game_map[p.y][p.x] == 1)
 	{
-		if (game_map[p.y][p.x + i] == 0)
-			continue;
-		if (game_map[p.y][p.x + i] == 2)
-		{
-			Point copy_p = p;
-			copy_p.x += i;
-			for (Bomb& b : bomb_array)
-			{
-				if (copy_p.operator==(b.GetPosition()))
-				{
-					BombExplosion(game_map, kMapSize, window, s_wave, b, bomb_array);
-					break;
-				}
-			}
-			break;
-		}
+		if (rand() % 2)
+			game_map[p.y][p.x] = 3;
 		else
-			game_map[p.y][p.x+i] = 0;
-		break;
+			game_map[p.y][p.x] = 0;
 	}
-	for (int i = 1; i <= explosion_range; i++)
+	else if (game_map[p.y][p.x] == 2)
 	{
-		if (game_map[p.y][p.x-i] == 0)
-			continue;
-		if (game_map[p.y][p.x-i] == 2)
+		for (Bomb& b : bomb_array)
 		{
-			Point copy_p = p;
-			copy_p.x -= i;
-			for (Bomb& b : bomb_array)
+			if (p.operator==(b.GetPosition()))
 			{
-				if (copy_p.operator==(b.GetPosition()))
-				{
-					BombExplosion(game_map, kMapSize, window, s_wave, b, bomb_array);
-					break;
-				}
+				BombExplosion(game_map, kMapSize, window, s_wave, b, bomb_array);
+				break;
 			}
-			break;
 		}
-		else
-			game_map[p.y][p.x-i] = 0;
-		break;
+	}
+	else
+	{
+		game_map[p.y][p.x] = 0;
 	}
 }
