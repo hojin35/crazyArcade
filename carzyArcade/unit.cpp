@@ -34,6 +34,11 @@ void User::SetPosition(Point& p)
 {
 	p_ = p;
 }
+void User::GainItems(int item)
+{
+	if (item == 3)
+		explosion_range_ += 1;
+}
 // Bomb
 Bomb::Bomb(int x,int y, ch::time_point<ch::high_resolution_clock>& now,int explosion_range)
 {

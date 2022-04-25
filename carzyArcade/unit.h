@@ -1,3 +1,4 @@
+#pragma once
 #include<chrono>
 #include<SFML/Graphics.hpp>
 #include<vector>
@@ -25,6 +26,7 @@ public:
 	void UserMoveY(bool dir);
 	int GetExplosionRange();
 	void SetPosition(Point& p);
+	void GainItems(int item);
 private:
 	Point p_;
 	double speed_ = 1;
